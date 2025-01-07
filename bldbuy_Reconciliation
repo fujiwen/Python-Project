@@ -1,4 +1,5 @@
 import pandas as pd
+import warnings
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils.dataframe import dataframe_to_rows
@@ -7,12 +8,101 @@ from openpyxl.worksheet.properties import WorksheetProperties, PageSetupProperti
 from datetime import datetime
 import os
 
+# 忽略来自openpyxl.styles.stylesheet的UserWarning
+warnings.filterwarnings("ignore", category=UserWarning, module='openpyxl.styles.stylesheet')
+
+def read_config_uuid(config_file_path):
+    """读取配置文件中的UUID"""
+    try:
+        with open(config_file_path, 'r') as file:
+            for line in file:
+                if line.strip().startswith('uuid='):
+                    return line.strip().split('=')[1].strip()
+    except Exception as e:
+        print(f"读取配置文件 {config_file_path} 失败: {e}")
+        exit()
+    return None
+
+def check_uuid(uuid, uuid_list):
+    """检查UUID是否存在于清单中"""
+    return uuid in uuid_list
+
+# 定义允许的UUID清单
+allowed_uuids = [
+    "3634a4eb-cb7c-e89b-f50f-fc003712920a",
+    "6754fcd4-6d6d-ed2c-4790-01bc54d22416",
+    "edfdad3f-328e-0cf2-e03e-f5c572bcf36b",
+    "691a8026-6eb9-fe73-cc41-61a0ca93a418",
+    "ed77d9f8-df34-f5b8-3255-57067f0670a7",
+    "4a5a0e92-d99f-83a6-9039-b24a9275e0fc",
+    "6e637b6a-615d-1fdd-dfed-72e9b8ba4039",
+    "2d4a61f1-63fb-015e-d58e-06958b5ecdb6",
+    "28118b2b-7545-15bf-acb1-0dfd55103f05",
+    "21124437-59c3-7fee-f595-b68efdc17c7a",
+    "296be891-36ee-a7a5-1325-cd2a89c83c9f",
+    "3df09132-2041-4a46-5dd1-5acd109be829",
+    "57017e5d-6b26-c609-b28b-f3eab7eafb6d",
+    "e4b8398b-1dc8-e553-24fb-ef8526113ddd",
+    "a4e8d5ef-ee39-a3cf-e434-85dc0ed76ec8",
+    "b63e78b1-2ac8-7cc8-8f07-ca868e81e9ab",
+    "01adb59f-6f6c-95d8-0545-89b21dc4b103",
+    "de46f139-fcbe-167c-3e15-fc5ca28086e0",
+    "789ca85c-2588-6b14-eae8-080e613ec038",
+    "c32a3c56-b5e7-a260-460e-49d40e1cec32",
+    "955a4210-ad9c-1333-febf-ee7868f49140",
+    "7e94c207-4373-d9df-db87-935a764a0f07",
+    "daf8d8ec-a67b-ca37-9cdf-eda0bbc1f2ec",
+    "537f59ee-53c3-489e-5219-ffdd77f8cced",
+    "1311c047-f32d-2caf-e4ac-d111840edc36",
+    "d5b2419c-39aa-60a8-4ee4-85b1e8079aa6",
+    "0549e856-4b1d-a01f-525a-25247d32a967",
+    "acf22547-0ddb-2985-837e-6eaa2e232dd5",
+    "a7f2eff7-35eb-0136-bcf5-4bfbede3df56",
+    "56e32bfc-d31c-eea9-0a0a-06cc9f9d01cb",
+    "8440bfc9-a657-0004-7d67-b9a690c7d4d4",
+    "e5e9b40b-bcb7-b816-5e66-b4853d0c0624",
+    "1a1f971f-7692-e557-bbc7-df3a57086b8c",
+    "d034e330-f6fa-ad17-4bc0-1483f714f677",
+    "8e9752cf-f1b9-f11b-9dae-f3dbc24da4a8",
+    "72c62a15-2ca4-4ab6-f127-cfdd0b6494e1",
+    "bbef1eeb-a645-92f2-0bcd-b4f3e564232d",
+    "84718bf3-38db-ed4b-1dd2-94df2d0bb7d6",
+    "200f4fde-55c6-c762-5a72-2f3022afaa47",
+    "94065307-171c-6def-05e7-8875c7a91642",
+    "55749f60-f009-8f9f-763b-f7d520e73bb9",
+    "dabb6114-e24a-7a2a-b282-b22b6e110c63",
+    "e270a13f-9686-066b-0e54-b6ad17bdf09f",
+    "68be9f36-4e26-3d1d-23c6-30a3053a3c3e",
+    "ce6ff57d-90d6-34da-b8f5-1b062dc1f7e5",
+    "788ceb99-7db5-4695-3f43-e34a3ec47e9f",
+    "c0d578bf-9c1b-5e18-806c-da0166273765",
+    "3d9dd639-d780-96f0-cecc-03399b081b24",
+    "6d84d5be-4027-3ac7-d6d0-9583e2b0609c",
+    "e10a4abf-086e-67a3-38c7-f3eda68a8564"
+]
+
+# 读取配置文件中的UUID并进行验证
+config_file = os.path.join(os.getcwd(), 'config.dev')
+uuid_from_config = read_config_uuid(config_file)
+
+if uuid_from_config and check_uuid(uuid_from_config, allowed_uuids):
+    print("UUID认证成功，继续执行代码...")
+else:
+    print("UUID认证失败，退出程序。")
+    exit()
+
 # 定义期望的表头字段及其顺序，并直接将"单位"更改为"基本单位"
 expected_headers = [
-    "收货日期", "订单号", "商品名称", "实收数量", "基本单位", 
+    "收货日期", "订单号", "商品名称", "实收数量", "基本单位",
     "单价(结算)", "小计金额(结算)", "税额(结算)", "小计价税(结算)", "部门",
     "税率", "供应商/备用金报销账户"  # 互换位置
 ]
+
+def preprocess_excel(file_path):
+    """Preprocess the Excel file to skip the first 28 rows and remove any potential issues."""
+    df = pd.read_excel(file_path, skiprows=28)
+    df_filtered = df.reindex(columns=[col if col != '单位' else '基本单位' for col in expected_headers if col in df.columns or col == '基本单位'])
+    return df_filtered.dropna(how='all')
 
 # 确保 'import' 文件夹存在
 input_folder = "import"
@@ -36,25 +126,45 @@ else:
 # 读取上传的Excel文件（假设所有Excel文件都在import文件夹中）
 input_files = [f for f in os.listdir(input_folder) if f.endswith('.xlsx') or f.endswith('.xls')]
 for input_file in input_files:
-    df = pd.read_excel(os.path.join(input_folder, input_file))
+    file_path = os.path.join(input_folder, input_file)
+    df_filtered = preprocess_excel(file_path)
 
-    # 确保所有预期的表头都存在于输入文件中，并按照指定的顺序重排列
-    df_filtered = df.reindex(columns=[col if col != '单位' else '基本单位' for col in expected_headers if col in df.columns or col == '基本单位'])
+    # 检查是否存在预期的表头字段
+    missing_columns = set(expected_headers) - set(df_filtered.columns)
+    if missing_columns:
+        print(f"警告：文件 {input_file} 缺少以下列：{', '.join(missing_columns)}")
+        continue  # 或者根据需要选择其他处理方式
 
-    # 格式化收货日期为 YYYY-MM-DD
-    df_filtered['收货日期'] = pd.to_datetime(df_filtered['收货日期']).dt.strftime('%Y-%m-%d')
+    # 格式化收货日期为 YYYY-MM-DD 并提取最早日期以确定年月
+    if '收货日期' in df_filtered.columns:
+        df_filtered['收货日期'] = pd.to_datetime(df_filtered['收货日期'], errors='coerce').dt.strftime('%Y-%m-%d')
+        earliest_date = df_filtered['收货日期'].min()
+        year_month = datetime.strptime(earliest_date, '%Y-%m-%d').strftime('%Y-%m') if earliest_date else None
+
+        if not year_month:
+            print(f"警告：文件 {input_file} 中没有有效的收货日期，无法确定年月。")
+            continue
+
+        # 在 export 文件夹下创建或检查年月子文件夹的存在
+        year_month_folder = os.path.join(output_folder, year_month)
+        if not os.path.exists(year_month_folder):
+            os.makedirs(year_month_folder)
 
     # 按指定条件分组并排序
-    group_columns = ['供应商/备用金报销账户', '税率']  # 假设'税率'代表效率
+    group_columns = ['供应商/备用金报销账户', '税率']
     sort_columns = ['订单号']
 
-    # 先排序后分组
-    sorted_df = df_filtered.sort_values(by=sort_columns).groupby(group_columns, as_index=False)
+    # 确保排序所需的列存在
+    if all(col in df_filtered.columns for col in sort_columns):
+        sorted_df = df_filtered.sort_values(by=sort_columns).groupby(group_columns, as_index=False)
+    else:
+        print(f"警告：文件 {input_file} 中缺少排序所需的列，将不按顺序处理数据。")
+        sorted_df = df_filtered.groupby(group_columns, as_index=False)
 
     # 遍历每个分组并保存为单独的文件
     for group_name, group_data in sorted_df:
-        supplier_account, efficiency = group_name  # 解构分组键
-        
+        supplier_account, efficiency = group_name
+
         # 构建文件名，去除非法字符并替换为空格
         sanitized_supplier_account = ''.join([c if c.isalnum() or c in (' ', '.') else '_' for c in str(supplier_account)])
         
@@ -64,9 +174,9 @@ for input_file in input_files:
         
         # 构造文件路径和名称
         output_filename = f"{sanitized_supplier_account}_{sanitized_efficiency}.xlsx"
-        output_filepath = os.path.join(output_folder, output_filename)
-        
-        # 创建一个新的工作簿对象
+        output_filepath = os.path.join(year_month_folder, output_filename)  # 使用年月子文件夹
+
+        # 创建一个新的工作簿对象并进行后续处理...
         wb = Workbook()
         ws = wb.active
         ws.title = "Statement"
@@ -115,8 +225,11 @@ for input_file in input_files:
             adjusted_width = (max_length + 8)  # 添加一些额外空间
             ws.column_dimensions[column_letter].width = adjusted_width
 
+        # 设置纸张大小为A4
+        ws.page_setup.paperSize = ws.PAPERSIZE_A4
+
         # 设置页边距和水平居中
-        ws.page_margins = PageMargins(top=1.0, left=0.2, right=0.2, bottom=1.8)
+        ws.page_margins = PageMargins(top=0.25, left=0.2, right=0, bottom=1.05, header=0, footer=0.5)
         ws.page_setup.horizontalCentered = True
         ws.page_setup.verticalCentered = True
 
@@ -147,11 +260,11 @@ for input_file in input_files:
                 else:  # 分组数据格式
                     cell.font = Font(size=10, name='微软雅黑')
 
-        # 保存文件
+        # 保存文件到年月子文件夹中
         wb.save(output_filepath)
 
         print(f"已成功创建 {output_filepath}")
-        
+
 # 确保 'archive' 文件夹存在
 archive_folder = os.path.join(os.getcwd(), "archive")
 if not os.path.exists(archive_folder):
@@ -178,5 +291,4 @@ for input_file in input_files:
     else:
         print(f"文件 {original_filepath} 不存在，无法归档。")
 
-print("所有文件处理完成。")
 print("所有文件处理完成。")
