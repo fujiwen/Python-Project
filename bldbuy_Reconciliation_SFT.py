@@ -4,7 +4,6 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.worksheet.page import PageMargins
-from openpyxl.worksheet.properties import WorksheetProperties, PageSetupProperties
 from datetime import datetime
 import os
 
@@ -29,7 +28,56 @@ def check_uuid(uuid, uuid_list):
 
 # 定义允许的UUID清单
 allowed_uuids = [
-    "e10a4abf-186e-67a3-38c7-f3eda68a8564"
+    "3634a4eb-cb7c-e89b-f50f-fc003712920a",
+    "6754fcd4-6d6d-ed2c-4790-01bc54d22416",
+    "edfdad3f-328e-0cf2-e03e-f5c572bcf36b",
+    "691a8026-6eb9-fe73-cc41-61a0ca93a418",
+    "ed77d9f8-df34-f5b8-3255-57067f0670a7",
+    "4a5a0e92-d99f-83a6-9039-b24a9275e0fc",
+    "6e637b6a-615d-1fdd-dfed-72e9b8ba4039",
+    "2d4a61f1-63fb-015e-d58e-06958b5ecdb6",
+    "28118b2b-7545-15bf-acb1-0dfd55103f05",
+    "21124437-59c3-7fee-f595-b68efdc17c7a",
+    "296be891-36ee-a7a5-1325-cd2a89c83c9f",
+    "3df09132-2041-4a46-5dd1-5acd109be829",
+    "57017e5d-6b26-c609-b28b-f3eab7eafb6d",
+    "e4b8398b-1dc8-e553-24fb-ef8526113ddd",
+    "a4e8d5ef-ee39-a3cf-e434-85dc0ed76ec8",
+    "b63e78b1-2ac8-7cc8-8f07-ca868e81e9ab",
+    "01adb59f-6f6c-95d8-0545-89b21dc4b103",
+    "de46f139-fcbe-167c-3e15-fc5ca28086e0",
+    "789ca85c-2588-6b14-eae8-080e613ec038",
+    "c32a3c56-b5e7-a260-460e-49d40e1cec32",
+    "955a4210-ad9c-1333-febf-ee7868f49140",
+    "7e94c207-4373-d9df-db87-935a764a0f07",
+    "daf8d8ec-a67b-ca37-9cdf-eda0bbc1f2ec",
+    "537f59ee-53c3-489e-5219-ffdd77f8cced",
+    "1311c047-f32d-2caf-e4ac-d111840edc36",
+    "d5b2419c-39aa-60a8-4ee4-85b1e8079aa6",
+    "0549e856-4b1d-a01f-525a-25247d32a967",
+    "acf22547-0ddb-2985-837e-6eaa2e232dd5",
+    "a7f2eff7-35eb-0136-bcf5-4bfbede3df56",
+    "56e32bfc-d31c-eea9-0a0a-06cc9f9d01cb",
+    "8440bfc9-a657-0004-7d67-b9a690c7d4d4",
+    "e5e9b40b-bcb7-b816-5e66-b4853d0c0624",
+    "1a1f971f-7692-e557-bbc7-df3a57086b8c",
+    "d034e330-f6fa-ad17-4bc0-1483f714f677",
+    "8e9752cf-f1b9-f11b-9dae-f3dbc24da4a8",
+    "72c62a15-2ca4-4ab6-f127-cfdd0b6494e1",
+    "bbef1eeb-a645-92f2-0bcd-b4f3e564232d",
+    "84718bf3-38db-ed4b-1dd2-94df2d0bb7d6",
+    "200f4fde-55c6-c762-5a72-2f3022afaa47",
+    "94065307-171c-6def-05e7-8875c7a91642",
+    "55749f60-f009-8f9f-763b-f7d520e73bb9",
+    "dabb6114-e24a-7a2a-b282-b22b6e110c63",
+    "e270a13f-9686-066b-0e54-b6ad17bdf09f",
+    "68be9f36-4e26-3d1d-23c6-30a3053a3c3e",
+    "ce6ff57d-90d6-34da-b8f5-1b062dc1f7e5",
+    "788ceb99-7db5-4695-3f43-e34a3ec47e9f",
+    "c0d578bf-9c1b-5e18-806c-da0166273765",
+    "3d9dd639-d780-96f0-cecc-03399b081b24",
+    "6d84d5be-4027-3ac7-d6d0-9583e2b0609c",
+    "e10a4abf-086e-67a3-38c7-f3eda68a8564"
 ]
 
 # 读取配置文件中的UUID并进行验证
@@ -74,6 +122,8 @@ if os.path.exists(header_file):
 else:
     header_rows = []
 
+
+        
 # 读取上传的Excel文件（假设所有Excel文件都在import文件夹中）
 input_files = [f for f in os.listdir(input_folder) if f.endswith('.xlsx') or f.endswith('.xls')]
 for input_file in input_files:
@@ -102,8 +152,8 @@ for input_file in input_files:
             os.makedirs(year_month_folder)
 
     # 按指定条件分组并排序
-    group_columns = ['供应商/备用金报销账户', '税率']
-    sort_columns = ['订单号']
+    group_columns = ['供应商/备用金报销账户']
+    sort_columns = ['税率', '订单号']
 
     # 确保排序所需的列存在
     if all(col in df_filtered.columns for col in sort_columns):
@@ -114,17 +164,14 @@ for input_file in input_files:
 
     # 遍历每个分组并保存为单独的文件
     for group_name, group_data in sorted_df:
-        supplier_account, efficiency = group_name
+        supplier_account = group_name
 
         # 构建文件名，去除非法字符并替换为空格
-        sanitized_supplier_account = ''.join([c if c.isalnum() or c in (' ', '.') else '_' for c in str(supplier_account)])
-        
-        # 将税率转换为整数百分比格式用于文件名
-        sanitized_efficiency = f"{int(efficiency * 100)}%" if pd.notna(efficiency) else '0%'
-        sanitized_efficiency = ''.join([c if c.isalnum() or c in (' ', '%') else '_' for c in sanitized_efficiency])
+        sanitized_supplier_account = ''.join([c if c.isalnum() or c in (' ', '.') else '' for c in str(supplier_account)])
+        sanitized_supplier_account = sanitized_supplier_account.replace(' ', '_').strip('_')  # 去除多余空格和下划线
         
         # 构造文件路径和名称
-        output_filename = f"{sanitized_supplier_account}_{sanitized_efficiency}.xlsx"
+        output_filename = f"{year_month}_{sanitized_supplier_account}.xlsx"  # 添加年月前缀
         output_filepath = os.path.join(year_month_folder, output_filename)  # 使用年月子文件夹
 
         # 创建一个新的工作簿对象并进行后续处理...
@@ -178,6 +225,9 @@ for input_file in input_files:
 
         # 设置纸张大小为A4
         ws.page_setup.paperSize = ws.PAPERSIZE_A4
+
+        # 冻结前六行
+        ws.freeze_panes = ws['A7']  # 冻结第七行上方的行，即前六行
 
         # 设置页边距和水平居中
         ws.page_margins = PageMargins(top=0.25, left=0.2, right=0, bottom=1.05, header=0, footer=0.5)
