@@ -20,6 +20,9 @@ jobs:
  
     - name: Install PyInstaller
       run: pip install pyinstaller
+
+    - name: Install dependencies
+      run: pip install pandas numpy openpyxl xlrd 
  
     - name: Build EXE
       run: pyinstaller --onefile --windowed Bank_Reconciliation_tool.py
