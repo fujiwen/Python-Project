@@ -4,6 +4,7 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.worksheet.page import PageMargins
+from openpyxl.worksheet.properties import WorksheetProperties, PageSetupProperties
 from datetime import datetime
 import os
 
@@ -122,8 +123,6 @@ if os.path.exists(header_file):
 else:
     header_rows = []
 
-
-        
 # 读取上传的Excel文件（假设所有Excel文件都在import文件夹中）
 input_files = [f for f in os.listdir(input_folder) if f.endswith('.xlsx') or f.endswith('.xls')]
 for input_file in input_files:
@@ -152,8 +151,8 @@ for input_file in input_files:
             os.makedirs(year_month_folder)
 
     # 按指定条件分组并排序
-    group_columns = ['供应商/备用金报销账户']
-    sort_columns = ['税率', '订单号']
+    group_columns = ['供应商/备用金报销账户', '税率']
+    sort_columns = ['订单号']
 
     # 确保排序所需的列存在
     if all(col in df_filtered.columns for col in sort_columns):
@@ -164,14 +163,17 @@ for input_file in input_files:
 
     # 遍历每个分组并保存为单独的文件
     for group_name, group_data in sorted_df:
-        supplier_account = group_name
+        supplier_account, efficiency = group_name
 
         # 构建文件名，去除非法字符并替换为空格
-        sanitized_supplier_account = ''.join([c if c.isalnum() or c in (' ', '.') else '' for c in str(supplier_account)])
-        sanitized_supplier_account = sanitized_supplier_account.replace(' ', '_').strip('_')  # 去除多余空格和下划线
+        sanitized_supplier_account = ''.join([c if c.isalnum() or c in (' ', '.') else '_' for c in str(supplier_account)])
         
-        # 构造文件路径和名称
-        output_filename = f"{year_month}_{sanitized_supplier_account}.xlsx"  # 添加年月前缀
+        # 将税率转换为整数百分比格式用于文件名
+        sanitized_efficiency = f"{int(efficiency * 100)}%" if pd.notna(efficiency) else '0%'
+        sanitized_efficiency = ''.join([c if c.isalnum() or c in (' ', '%') else '_' for c in sanitized_efficiency])
+        
+        # 构造文件路径和名称，增加年月前缀
+        output_filename = f"{year_month}_{sanitized_supplier_account}_{sanitized_efficiency}.xlsx"
         output_filepath = os.path.join(year_month_folder, output_filename)  # 使用年月子文件夹
 
         # 创建一个新的工作簿对象并进行后续处理...
@@ -226,9 +228,6 @@ for input_file in input_files:
         # 设置纸张大小为A4
         ws.page_setup.paperSize = ws.PAPERSIZE_A4
 
-        # 冻结前六行
-        ws.freeze_panes = ws['A7']  # 冻结第七行上方的行，即前六行
-
         # 设置页边距和水平居中
         ws.page_margins = PageMargins(top=0.25, left=0.2, right=0, bottom=1.05, header=0, footer=0.5)
         ws.page_setup.horizontalCentered = True
@@ -242,8 +241,11 @@ for input_file in input_files:
         # 添加页脚（页码）
         ws.oddFooter.center.text = "Page &[Page] of &[Pages]"
 
-       # 设置打印标题行，使得表头在每一页都打印出来
+        # 设置打印标题行，使得表头在每一页都打印出来
         ws.print_title_rows = '6:6'  # 表头在第六行
+
+        # 冻结前六行
+        ws.freeze_panes = 'A7'
 
         # 格式化单元格样式
         for row in ws.iter_rows(min_row=1, max_col=len(expected_headers), max_row=ws.max_row):
