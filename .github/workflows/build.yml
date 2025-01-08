@@ -25,7 +25,7 @@ jobs:
       run: pip install pandas numpy openpyxl xlrd 
  
     - name: Build EXE
-      run: pyinstaller --onefile Bank_Reconciliation_tool.py
+      run: pyinstaller --onefile bldbuy_Reconciliation_SFT.py
       env:
         CC: mingw32-gcc
  
@@ -33,4 +33,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: exe-build
-        path: dist/Bank_Reconciliation_tool.exe
+        path: dist/bldbuy_Reconciliation_SFT.exe
