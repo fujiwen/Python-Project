@@ -32,5 +32,5 @@ jobs:
     - name: Upload EXE
       uses: actions/upload-artifact@v4
       with:
-        name: exe-build
+        name: bldbuy_Reconciliation_SFT
         path: dist/bldbuy_Reconciliation_SFT.exe
