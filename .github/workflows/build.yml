@@ -2,9 +2,11 @@ name: Build Bank_Reconciliation_tool EXE
  
 on:
   push:
-    branches: [ main ]
+    paths:
+      - '**/*SFT.py'  # 匹配所有 Python 文件的更改
   pull_request:
-    branches: [ main ]
+    paths:
+      - '**/*SFT.py'  # 匹配所有 Python 文件的更改
  
 jobs:
   build:
