@@ -156,6 +156,10 @@ class BldBuyApp:
                     os.makedirs(folder)
                     self.log_message(f"创建文件夹: {folder}")
             
+            # 计算总文件数
+            total_files = len([f for f in input_files if f])
+            processed_files = 0
+            
             # 处理每个文件
             for input_file in input_files:
                 if not input_file:  # 跳过空路径
@@ -220,6 +224,12 @@ class BldBuyApp:
                         
                     shutil.move(input_file, archive_filepath)
                     self.log_message(f"已成功归档文件 {os.path.basename(input_file)}")
+                    
+                    # 更新进度
+                    processed_files += 1
+                    progress_value = int((processed_files / total_files) * 100)
+                    self.progress['value'] = progress_value
+                    self.root.update_idletasks()  # 强制更新UI
                     
                 except Exception as e:
                     self.log_message(f"处理文件 {os.path.basename(input_file)} 时出错: {str(e)}")
