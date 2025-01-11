@@ -172,7 +172,7 @@ class BldBuyApp:
                         header_rows = list(ws_header.iter_rows(min_row=1, max_row=5, values_only=True))
                     else:
                         header_rows = []
-                        self.log_message("警告：未找到header.xlsx文件")
+                        self.log_message("警告：未找到header.xlsx文件,将会导致对帐单标题错误")
                     
                     df_filtered = self.preprocess_excel(input_file)
                     
@@ -199,7 +199,7 @@ class BldBuyApp:
                             
                     # 分组处理
                     group_columns = ['供应商/备用金报销账户', '税率']
-                    sort_columns = ['收货日期', '部门', '订单号']
+                    sort_columns = ['部门', '收货日期']
                     
                     if all(col in df_filtered.columns for col in sort_columns):
                         sorted_df = df_filtered.sort_values(by=sort_columns).groupby(group_columns, as_index=False)
@@ -324,7 +324,7 @@ class BldBuyApp:
         ws.page_setup.fitToHeight = False
         ws.page_setup.fitToWidth = 1
         ws.oddFooter.center.text = "Page &[Page] of &[Pages]"
-        ws.print_title_rows = '6:6'
+        ws.print_title_rows = '1:6'
         ws.freeze_panes = 'A7'
         
         # 设置单元格样式
