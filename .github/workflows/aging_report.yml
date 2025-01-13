@@ -1,4 +1,4 @@
-name: Build Bank_Reconciliation_tool EXE
+name: Build aging_report EXE
  
 on:
   push:
