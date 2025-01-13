@@ -8,6 +8,7 @@ from datetime import datetime
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, NamedStyle
 import time
+import sys
 
 class AP_Aging_Report_App:
     def __init__(self, root):
@@ -325,7 +326,7 @@ class AP_Aging_Report_App:
                 cell.alignment = right_alignment  # 新建行靠右对齐
 
             # 处理输出文件名
-            output_file = "AP_Aging_Report.xlsx"
+            output_file = "{latest_yearmonth}_AP_Aging_Report.xlsx"
             counter = 1
             while os.path.exists(output_file):
                 output_file = f"{latest_yearmonth}_AP_Aging_Report({counter}).xlsx"
@@ -340,7 +341,15 @@ class AP_Aging_Report_App:
             # 提示用户是否打开文件
             open_file = messagebox.askyesno('打开文件', '文件已保存，是否立即打开？')
             if open_file:
-                os.startfile(output_file)
+                try:
+                    if os.name == 'nt':  # Windows系统
+                        os.startfile(output_file)
+                    else:  # Mac/Linux系统
+                        import subprocess
+                        opener = 'open' if sys.platform == 'darwin' else 'xdg-open'
+                        subprocess.call([opener, output_file])
+                except Exception as e:
+                    self.log_message(f"打开文件失败: {str(e)}")
 
         except Exception as e:
             self.log_message(f"处理出错: {str(e)}")
