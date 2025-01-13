@@ -1,4 +1,4 @@
-name: Build Bank_Reconciliation_tool EXE
+name: bldbuy_Reconciliation_SFT EXE
  
 on:
   push:
