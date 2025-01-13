@@ -8,44 +8,57 @@ from datetime import datetime
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, NamedStyle
 import time
-import sys
 
 class AP_Aging_Report_App:
-    def __init__(self, root):
+    def __init__(self, root, master_window):
         self.root = root
-        self.root.title("AP Aging Report Processor")
-        self.root.geometry("500x350")
+        self.master = master_window  # 使用传入的主窗口对象
+        self.master.title("AP 帐龄报表工具")  # 在顶层窗口设置标题
+        self.master.geometry("800x600")
         
         # 创建主框架
         self.main_frame = ttk.Frame(root, padding="20")
         self.main_frame.pack(fill=tk.BOTH, expand=True)
         
-        # 文件选择
+        # 文件选择和进度条框架
         self.file_frame = ttk.LabelFrame(self.main_frame, text="选择要处理的帐龄报表")
         self.file_frame.pack(fill=tk.X, pady=5)
         
+        # 文件选择部分    
+        # 添加文字提示
+        self.file_label = ttk.Label(self.file_frame, text="选择文件：")
+        self.file_label.grid(row=0, column=0, sticky='w', padx=(5, 0), pady=5)
+        
         self.file_entry = ttk.Entry(self.file_frame)
-        self.file_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+        self.file_entry.grid(row=0, column=1, sticky='ew', padx=(5, 0), pady=5)
         
-        self.browse_btn = ttk.Button(self.file_frame, text="浏览...", command=self.select_file)
-        self.browse_btn.pack(side=tk.RIGHT)
+        self.browse_btn = ttk.Button(self.file_frame, text="浏览...", command=self.select_file, width=10)
+        self.browse_btn.grid(row=0, column=2, padx=(0, 5), pady=5)
         
-        # 进度条
-        self.progress = ttk.Progressbar(self.main_frame, orient=tk.HORIZONTAL, mode='determinate')
-        self.progress.pack(fill=tk.X, pady=10)
+        # 开始处理按钮（移动到文件选择框架内）
+        self.process_btn = ttk.Button(self.file_frame, text="开始处理", command=self.start_processing)
+        self.process_btn.grid(row=1, column=0, columnspan=2, sticky='w', pady=(5, 10), padx=5)
+        
+        # 配置列权重
+        self.file_frame.columnconfigure(0, weight=0)  # 标签列不扩展
+        self.file_frame.columnconfigure(1, weight=1)  # 输入框扩展
+        self.file_frame.columnconfigure(2, weight=0)  # 按钮列不扩展
         
         # 日志显示
         self.log_frame = ttk.LabelFrame(self.main_frame, text="处理日志")
         self.log_frame.pack(fill=tk.BOTH, expand=True)
         
+        # 创建滚动条
+        self.log_scroll = ttk.Scrollbar(self.log_frame)
+        self.log_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        
         # 在log_frame内添加Text部件用于显示日志
         if not hasattr(self, 'log_text'):
-            self.log_text = Text(self.log_frame, height=5, width=50)
+            self.log_text = Text(self.log_frame, height=5, width=50, yscrollcommand=self.log_scroll.set)
             self.log_text.pack(fill='both', expand=True)
         
-        # 处理按钮
-        self.process_btn = ttk.Button(self.main_frame, text="开始处理", command=self.start_processing)
-        self.process_btn.pack(pady=10)
+        # 配置滚动条
+        self.log_scroll.config(command=self.log_text.yview)
         
         # 初始化变量
         self.input_file = ""
@@ -197,11 +210,15 @@ class AP_Aging_Report_App:
             
             # 生成输出文件名
             latest_yearmonth = sorted_columns[0]
-            output_path = os.path.join(current_dir, f"{latest_yearmonth}_AP Aging Report.xlsx")
-            
+            output_file = f"{latest_yearmonth}_AP_Aging_Report.xlsx"
+            counter = 1
+            while os.path.exists(output_file):
+                output_file = f"{latest_yearmonth}_AP_Aging_Report({counter}).xlsx"
+                counter += 1
+
             # 保存文件
             self.log_message("正在保存文件...")
-            with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
+            with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
                 result_df.to_excel(writer, index=False, sheet_name='Aggregated Data')
                 
                 # 样式设置
@@ -317,39 +334,13 @@ class AP_Aging_Report_App:
                 # 原表头行现在在第2行
                 header_row = 2
             
-            self.log_message(f"处理完成！文件已保存到: {output_path}")
-            messagebox.showinfo("完成", f"文件处理完成！\n保存路径: {output_path}")
+            self.log_message(f"处理完成！文件已保存到: {output_file}")
+            messagebox.showinfo("完成", f"文件处理完成！\n保存路径: {output_file}")
             
-            # 设置新建行样式
-            for col in range(1, worksheet.max_column + 1):
-                cell = worksheet.cell(row=1, column=col)
-                cell.alignment = right_alignment  # 新建行靠右对齐
-
-            # 处理输出文件名
-            output_file = "{latest_yearmonth}_AP_Aging_Report.xlsx"
-            counter = 1
-            while os.path.exists(output_file):
-                output_file = f"{latest_yearmonth}_AP_Aging_Report({counter}).xlsx"
-                counter += 1
-
-            # 保存文件
-            workbook.save(output_file)
-            
-            # 在log_frame显示提示
-            self.log_text.see('end')
-
             # 提示用户是否打开文件
             open_file = messagebox.askyesno('打开文件', '文件已保存，是否立即打开？')
             if open_file:
-                try:
-                    if os.name == 'nt':  # Windows系统
-                        os.startfile(output_file)
-                    else:  # Mac/Linux系统
-                        import subprocess
-                        opener = 'open' if sys.platform == 'darwin' else 'xdg-open'
-                        subprocess.call([opener, output_file])
-                except Exception as e:
-                    self.log_message(f"打开文件失败: {str(e)}")
+                os.startfile(output_file)
 
         except Exception as e:
             self.log_message(f"处理出错: {str(e)}")
@@ -357,9 +348,8 @@ class AP_Aging_Report_App:
         finally:
             self.processing = False
             self.process_btn.config(state=tk.NORMAL)
-            self.progress['value'] = 0
             
 if __name__ == "__main__":
     root = tk.Tk()
-    app = AP_Aging_Report_App(root)
+    app = AP_Aging_Report_App(root, root)  # 将root同时作为container和master_window传递
     root.mainloop()
