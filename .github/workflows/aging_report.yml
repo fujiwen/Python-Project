@@ -27,7 +27,7 @@ jobs:
       run: pip install pandas numpy openpyxl xlrd 
  
     - name: Build EXE
-      run: pyinstaller --noconsole --icon=favicon.ico --onefile AP_Aging_Report_UI.py
+      run: pyinstaller --noconsole --icon=icons8-32.ico --onefile AP_Aging_Report_UI.py
       env:
         CC: mingw32-gcc
  
