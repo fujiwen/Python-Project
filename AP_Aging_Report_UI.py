@@ -21,7 +21,7 @@ class AP_Aging_Report_App:
         self.main_frame.pack(fill=tk.BOTH, expand=True)
         
         # 文件选择
-        self.file_frame = ttk.LabelFrame(self.main_frame, text="1. 选择要处理的帐龄报表")
+        self.file_frame = ttk.LabelFrame(self.main_frame, text="选择要处理的帐龄报表")
         self.file_frame.pack(fill=tk.X, pady=5)
         
         self.file_entry = ttk.Entry(self.file_frame)
